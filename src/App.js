@@ -1,7 +1,9 @@
 //@flow
 import React from "react";
+import { useState, useEffect } from "react";
 
 import { Layout } from "./layout/Layout";
+import { Control } from "./control/Control";
 import { Card } from "./card/Card";
 
 const colors = {
@@ -26,7 +28,18 @@ const uniqCards = [
     {matchIndex: 7, color: colors.PALE_GOLD, letter: "H" }
 ];
 
-const createCardsForGame = (uniqCards: Array<{matchIndex: number}>) => {
+type UniqCardType = {
+    matchIndex: number,
+    color: string,
+    letter: string
+};
+
+export type ExtendedCardType = {
+    ...UniqCardType,
+    id: number
+}
+
+const createCardsForGame = (uniqCards: Array<UniqCardType>): Array<ExtendedCardType> => {
     return [
         ...uniqCards.map((card, index) => ({...card, id: card.matchIndex})),
         ...uniqCards.map((card, index) => ({...card, id: card.matchIndex + uniqCards.length}))
@@ -46,11 +59,41 @@ const shuffle = (items: Array<any>) => {
 
 const App = () => {
 
+    const [ cards, setCards] = useState(createCardsForGame(uniqCards));
+    const [ openedCards, setOpenedCards ] = useState([]);
+    const [ hiddenCards, setHiddenCards ] = useState([]);
+    const [ moves, setMoves ] = useState(0);
+
+    useEffect(() => {
+        if (openedCards.length !== 2) return;
+
+        setMoves(moves + 1);
+
+        if (openedCards[0].matchIndex === openedCards[1].matchIndex) {
+            setTimeout(
+                () => setHiddenCards([...hiddenCards, ...openedCards]),
+                1000
+            );
+        };
+
+        setTimeout(
+            () => setOpenedCards([]),
+            1000
+        );
+    }, [openedCards]);
+
     const cardsList = <>
-        {uniqCards.map((card, index) => <Card key={index} color={card.color} letter={card.letter} />)}
+        {createCardsForGame(uniqCards).map((card, index) => (
+            <Card
+                key={index}
+                card={card}
+                isHidden={!!hiddenCards.find(hiddenCard => card.id === hiddenCard.id)}
+                isOpen={!!openedCards.find(openedCard => card.id === openedCard.id)}
+                onOpen={card => setOpenedCards([...openedCards, card])}   />
+        ))}
     </>;
 
-    return <Layout cards={cardsList}/>
+    return <Layout control={<Control moves={moves} />} cards={cardsList}/>
 }
 
 export default App;

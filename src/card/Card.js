@@ -2,6 +2,7 @@
 import * as React from "react";
 import { useState } from "react";
 import styled from "styled-components";
+import type { ExtendedCardType } from "../App";
 
 const Placeholder = styled.div`
     margin: 5px;
@@ -29,16 +30,16 @@ const FaceUpCard = styled(Container)`
     font-size: 130px;
 `;
 
-export const Card = (props: {color: string, letter: string}) => {
-    const [ isOpen, setOpen ] = useState(true);
-    const [ isVisible, setVisible ] = useState(true);
+export const Card = (props: { card: ExtendedCardType, onOpen: ExtendedCardType => mixed, isOpen: boolean, isHidden: boolean }) => {
+    const { card, onOpen, isOpen, isHidden } = props;
+
     return (
-        <Placeholder onClick={() => isVisible && setOpen(!isOpen)}>
-            {isVisible && isOpen ? 
-                <FaceUpCard color={props.color}>
-                    <span>{props.letter}</span>
+        <Placeholder onClick={() => !isHidden && onOpen(card)}>
+            {!isHidden && isOpen ? 
+                <FaceUpCard color={card.color}>
+                    <span>{card.letter}</span>
                 </FaceUpCard> :
-                <FaceDownCard />
+                !isHidden ? <FaceDownCard /> : null
                 }
             
         </Placeholder>
